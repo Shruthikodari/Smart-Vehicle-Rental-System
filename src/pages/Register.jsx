@@ -51,13 +51,12 @@ const Register = () => {
       const result = await register({ fullName, email, phone, password });
 
       if (result.success) {
-        // Go to login with vehicleId if booking
-        navigate("/login", { 
-          state: { vehicleId, from: { pathname: "/home" } } 
-        });
+        // After registration, go to Home (login page removed)
+        navigate("/home", { replace: true });
       } else {
         setError(result.message || "Registration failed. Please try again.");
       }
+    }
     } catch (err) {
       console.error("Register error:", err);
       setError("An error occurred. Please try again.");
@@ -128,12 +127,7 @@ const Register = () => {
           </button>
         </form>
 
-        <p className="auth-footer">
-          Already have an account?{" "}
-          <a onClick={() => navigate("/login")} style={{ cursor: "pointer" }}>
-            Login
-          </a>
-        </p>
+        <p className="auth-footer">Already have an account? Visit the home page.</p>
       </div>
     </div>
   );

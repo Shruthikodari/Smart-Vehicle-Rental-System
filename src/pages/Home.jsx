@@ -13,13 +13,8 @@ const Home = () => {
   const [error, setError] = useState(null);
 
   const handleBookNow = (vehicleId) => {
-    if (!user) {
-      // User not logged in, redirect to login with booking intent
-      navigate("/login", { state: { vehicleId, from: "/home" } });
-    } else {
-      // User is logged in, proceed to booking
-      navigate(`/booking/${vehicleId}`);
-    }
+    // Proceed directly to booking without requiring a login page
+    navigate(`/booking/${vehicleId}`);
   };
 
   useEffect(() => {
