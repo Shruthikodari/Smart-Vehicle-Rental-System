@@ -226,3 +226,19 @@
     font-size: 32px;
   }
 }
+
+/* Customer reviews on the vehicle details page */
+.vehicle-reviews { margin-top: 28px; }
+.vehicle-reviews h3 { margin: 0 0 12px 0; }
+.review-empty { color: #888; }
+.review-item {
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+}
+.review-item p { margin: 6px 0; color: #ccc; }
+.review-item small { color: #777; }
+.review-head { display: flex; justify-content: space-between; gap: 10px; }
+.review-stars { color: #ffb400; letter-spacing: 2px; }

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import API, { errorMessage } from "../services/api";
 import "../styles/admin-login.css";
 
 const AdminLogin = () => {
@@ -8,12 +9,6 @@ const AdminLogin = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
-  // Demo admin credentials (in production, validate against backend)
-  const DEMO_ADMIN = {
-    email: "admin@smartride.com",
-    password: "admin1234"
-  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -36,20 +31,13 @@ const AdminLogin = () => {
     setLoading(true);
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      if (email === DEMO_ADMIN.email && password === DEMO_ADMIN.password) {
-        // Store admin session
-        localStorage.setItem("adminToken", "admin_token_" + Date.now());
-        localStorage.setItem("adminUser", JSON.stringify({ email, role: "ADMIN" }));
-        navigate("/admin", { replace: true });
-      } else {
-        setError("❌ Invalid admin credentials. Please check your email and password.");
-      }
+      const res = await API.post("/auth/login/admin", { email: email.trim(), password });
+      // Store admin session issued by the backend
+      localStorage.setItem("adminToken", res.data.token);
+      localStorage.setItem("adminUser", JSON.stringify(res.data.data));
+      navigate("/admin", { replace: true });
     } catch (err) {
-      console.error("Admin login error:", err);
-      setError("Login failed. Please try again.");
+      setError("❌ " + errorMessage(err, "Login failed. Please try again."));
     } finally {
       setLoading(false);
     }
@@ -104,11 +92,10 @@ const AdminLogin = () => {
         <div className="security-info">
           <h4>🛡️ Security Features</h4>
           <ul>
-            <li>✓ Secure session management</li>
-            <li>✓ Encrypted credentials</li>
+            <li>✓ Token-based session management</li>
+            <li>✓ BCrypt-hashed passwords</li>
             <li>✓ Role-based access control</li>
-            <li>✓ Activity logging</li>
-            <li>✓ Auto-logout on inactivity</li>
+            <li>✓ Server-side validation</li>
           </ul>
         </div>
       </div>

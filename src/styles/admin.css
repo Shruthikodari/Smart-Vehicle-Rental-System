@@ -209,7 +209,8 @@
 
 .status-badge.available,
 .status-badge.active,
-.status-badge.approved {
+.status-badge.approved,
+.status-badge.confirmed {
   background: rgba(0, 221, 0, 0.15);
   color: #00dd00;
 }
@@ -231,7 +232,8 @@
 }
 
 .status-badge.blocked,
-.status-badge.rejected {
+.status-badge.rejected,
+.status-badge.cancelled {
   background: rgba(255, 87, 87, 0.15);
   color: #ff5757;
 }
@@ -734,4 +736,30 @@
     flex: 1;
     width: 100%;
   }
+}
+
+.status-badge.ongoing {
+  background: rgba(33, 150, 243, 0.15);
+  color: #42a5f5;
+}
+
+.btn-small.start {
+  background: rgba(33, 150, 243, 0.15);
+  color: #42a5f5;
+  border: 1px solid rgba(33, 150, 243, 0.4);
+}
+
+.review-list-item {
+  border-bottom: 1px solid #222;
+  padding: 12px 0;
+}
+
+.review-list-item p {
+  margin: 6px 0 0;
+  color: #bbb;
+}
+
+.review-list-item .stars-gold {
+  color: #ffb400;
+  letter-spacing: 2px;
 }

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "../styles/auth.css";
 
@@ -13,7 +13,9 @@ const Register = () => {
   const { register } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const vehicleId = location.state?.vehicleId;
+  // Where to go after signing up (e.g. back to the vehicle the user wanted to book)
+  const from = location.state?.from || "/dashboard";
+  const fromState = location.state?.fromState;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -32,8 +34,8 @@ const Register = () => {
       setError("Please enter a valid email");
       return;
     }
-    if (!phone.trim()) {
-      setError("Phone number is required");
+    if (!/^\d{10}$/.test(phone.trim())) {
+      setError("Please enter a 10-digit phone number");
       return;
     }
     if (!password.trim()) {
@@ -51,12 +53,11 @@ const Register = () => {
       const result = await register({ fullName, email, phone, password });
 
       if (result.success) {
-        // After registration, go to Home (login page removed)
-        navigate("/home", { replace: true });
+        // Registration also logs the user in, so continue where they left off
+        navigate(from, { replace: true, state: fromState });
       } else {
         setError(result.message || "Registration failed. Please try again.");
       }
-    }
     } catch (err) {
       console.error("Register error:", err);
       setError("An error occurred. Please try again.");
@@ -102,9 +103,10 @@ const Register = () => {
             <label>Phone</label>
             <input
               type="tel"
-              placeholder="+91 98765 43210"
+              placeholder="10-digit mobile number"
+              maxLength="10"
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
               disabled={loading}
               required
             />
@@ -127,7 +129,10 @@ const Register = () => {
           </button>
         </form>
 
-        <p className="auth-footer">Already have an account? Visit the home page.</p>
+        <p className="auth-footer">
+          Already have an account?{" "}
+          <Link to="/login" state={location.state} style={{ color: "#ff5757" }}>Log in</Link>
+        </p>
       </div>
     </div>
   );

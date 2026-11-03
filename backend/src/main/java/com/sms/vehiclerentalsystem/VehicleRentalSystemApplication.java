@@ -1,0 +1,13 @@
+package com.sms.vehiclerentalsystem;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
+
+@SpringBootApplication
+@EnableScheduling
+public class VehicleRentalSystemApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(VehicleRentalSystemApplication.class, args);
+    }
+}

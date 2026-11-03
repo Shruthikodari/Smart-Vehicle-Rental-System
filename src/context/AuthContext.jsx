@@ -26,15 +26,11 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      console.log('Attempting login with email:', email);
-      const response = await api.post('/auth/login/user', null, {
-        params: { email, password }
-      });
-      console.log('Login response:', response);
+      const response = await api.post('/auth/login/user', { email, password });
       const { token, data: userData } = response.data;
-      localStorage.setItem('token', token || 'dummy-token');
-      localStorage.setItem('user', JSON.stringify(userData || { email }));
-      setUser(userData || { email });
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
       return { success: true };
     } catch (error) {
       console.error('Login error:', error);
@@ -46,31 +42,18 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      console.log('=== REGISTER START ===');
-      console.log('Input userData:', userData);
-      
       const payload = {
         name: userData.fullName,
         email: userData.email,
         phone: userData.phone,
         password: userData.password,
       };
-      
-      console.log('Payload to send:', payload);
-      console.log('Posting to: /auth/register');
-      
-      const response = await api.post('/auth/register', payload);
-      console.log('=== REGISTER SUCCESS ===');
-      console.log('Response:', response);
+
+      await api.post('/auth/register', payload);
+      // Log straight in so the user's details can prefill bookings
+      await login(userData.email, userData.password);
       return { success: true, message: 'Registration successful' };
     } catch (error) {
-      console.log('=== REGISTER ERROR ===');
-      console.error('Full error object:', error);
-      console.error('Error status:', error.response?.status);
-      console.error('Error headers:', error.response?.headers);
-      console.error('Error data:', error.response?.data);
-      console.error('Error message:', error.message);
-      
       const message = error.response?.data?.message || 
                      error.response?.data?.error || 
                      error.message || 
@@ -80,6 +63,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
+    const token = localStorage.getItem('token');
+    api.post('/auth/logout', null, { headers: { Authorization: `Bearer ${token}` } }).catch(() => {});
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setUser(null);

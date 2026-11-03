@@ -1,10 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import API, { errorMessage } from "../services/api";
 import "../styles/admin.css";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("overview");
+  const [stats, setStats] = useState(null);
+  const [recentBookings, setRecentBookings] = useState([]);
+  const [error, setError] = useState("");
 
   const handleLogout = () => {
     localStorage.removeItem("adminToken");
@@ -12,26 +15,20 @@ const AdminDashboard = () => {
     navigate("/admin-login", { replace: true });
   };
 
-  // Mock data
-  const stats = {
-    totalBookings: 1248,
-    totalRevenue: 524000,
-    activeDrivers: 45,
-    availableVehicles: 28
-  };
+  useEffect(() => {
+    Promise.all([API.get("/admin/dashboard"), API.get("/admin/bookings")])
+      .then(([dashboardRes, bookingsRes]) => {
+        setStats(dashboardRes.data);
+        setRecentBookings(bookingsRes.data.slice(0, 5));
+      })
+      .catch(err => setError(errorMessage(err, "Could not load dashboard")));
+  }, []);
 
-  const recentBookings = [
-    { id: "BK-001", vehicle: "Honda City", user: "Raj Kumar", amount: 2500, status: "Completed" },
-    { id: "BK-002", vehicle: "Mahindra Thar", user: "Priya Singh", amount: 7350, status: "Active" },
-    { id: "BK-003", vehicle: "BMW X5", user: "Arjun Patel", amount: 15000, status: "Pending" }
-  ];
+  if (error) return <div className="admin-container"><p style={{color: '#ff6b6b'}}>{error}</p></div>;
+  if (!stats) return <div className="admin-container"><p>Loading dashboard...</p></div>;
 
-  const topVehicles = [
-    { name: "Honda City", bookings: 156, revenue: 312000 },
-    { name: "Mahindra Thar", bookings: 128, revenue: 256000 },
-    { name: "Maruti Swift", bookings: 112, revenue: 224000 },
-    { name: "BMW X5", bookings: 45, revenue: 450000 }
-  ];
+  const topVehicles = stats.topVehicles;
+  const maxBookings = Math.max(1, ...topVehicles.map(v => v.bookings));
 
   return (
     <div className="admin-container">
@@ -39,11 +36,11 @@ const AdminDashboard = () => {
       <div className="admin-header">
         <h1>Admin Dashboard</h1>
         <div className="admin-nav">
-          <button className={activeTab === "overview" ? "active" : ""} onClick={() => setActiveTab("overview")}>📊 Overview</button>
-          <button className={activeTab === "vehicles" ? "active" : ""} onClick={() => navigate("/admin/vehicles")}>🚗 Vehicles</button>
-          <button className={activeTab === "drivers" ? "active" : ""} onClick={() => navigate("/admin/drivers")}>👥 Drivers</button>
-          <button className={activeTab === "bookings" ? "active" : ""} onClick={() => navigate("/admin/bookings")}>📅 Bookings</button>
-          <button className={activeTab === "analytics" ? "active" : ""} onClick={() => navigate("/admin/analytics")}>📈 Analytics</button>
+          <button className="active">📊 Overview</button>
+          <button onClick={() => navigate("/admin/vehicles")}>🚗 Vehicles</button>
+          <button onClick={() => navigate("/admin/drivers")}>👥 Drivers</button>
+          <button onClick={() => navigate("/admin/bookings")}>📅 Bookings</button>
+          <button onClick={() => navigate("/admin/analytics")}>📈 Analytics</button>
           <button className="logout-btn" onClick={handleLogout}>🚪 Logout</button>
         </div>
       </div>
@@ -62,7 +59,7 @@ const AdminDashboard = () => {
           <div className="stat-icon">💰</div>
           <div className="stat-content">
             <p className="stat-label">Total Revenue</p>
-            <h2 className="stat-value">₹{stats.totalRevenue.toLocaleString()}</h2>
+            <h2 className="stat-value">₹{stats.totalRevenue.toLocaleString("en-IN")}</h2>
           </div>
         </div>
 
@@ -77,8 +74,40 @@ const AdminDashboard = () => {
         <div className="stat-card">
           <div className="stat-icon">🚗</div>
           <div className="stat-content">
-            <p className="stat-label">Available Vehicles</p>
-            <h2 className="stat-value">{stats.availableVehicles}</h2>
+            <p className="stat-label">Available Today</p>
+            <h2 className="stat-value">{stats.availableVehicles} / {stats.totalVehicles}</h2>
+          </div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-icon">⏳</div>
+          <div className="stat-content">
+            <p className="stat-label">Pending Approval</p>
+            <h2 className="stat-value">{stats.pendingBookings}</h2>
+          </div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-icon">🙋</div>
+          <div className="stat-content">
+            <p className="stat-label">Customers</p>
+            <h2 className="stat-value">{stats.totalCustomers}</h2>
+          </div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-icon">🛣️</div>
+          <div className="stat-content">
+            <p className="stat-label">On Rent Now</p>
+            <h2 className="stat-value">{stats.onRentToday}</h2>
+          </div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-icon">⭐</div>
+          <div className="stat-content">
+            <p className="stat-label">Reviews</p>
+            <h2 className="stat-value">{stats.totalReviews}</h2>
           </div>
         </div>
       </div>
@@ -86,7 +115,7 @@ const AdminDashboard = () => {
       {/* Recent Bookings */}
       <section className="admin-section">
         <div className="section-header">
-          <h2>Recent Bookings</h2>
+          <h2>Recent Bookings {stats.pendingBookings > 0 && <span style={{color: '#ff9800', fontSize: 14}}>· {stats.pendingBookings} awaiting your review</span>}</h2>
           <button className="btn-view-all" onClick={() => navigate("/admin/bookings")}>View All →</button>
         </div>
         <table className="admin-table">
@@ -94,23 +123,21 @@ const AdminDashboard = () => {
             <tr>
               <th>Booking ID</th>
               <th>Vehicle</th>
-              <th>User</th>
+              <th>Customer</th>
+              <th>Dates</th>
               <th>Amount</th>
               <th>Status</th>
-              <th>Action</th>
             </tr>
           </thead>
           <tbody>
             {recentBookings.map(booking => (
               <tr key={booking.id}>
-                <td>{booking.id}</td>
-                <td>{booking.vehicle}</td>
-                <td>{booking.user}</td>
-                <td>₹{booking.amount}</td>
+                <td>{booking.bookingCode}</td>
+                <td>{booking.vehicleName}</td>
+                <td>{booking.customerName}</td>
+                <td>{booking.pickupDate} → {booking.returnDate}</td>
+                <td>₹{booking.total.toLocaleString("en-IN")}</td>
                 <td><span className={`status-badge ${booking.status.toLowerCase()}`}>{booking.status}</span></td>
-                <td>
-                  <button className="btn-small">View</button>
-                </td>
               </tr>
             ))}
           </tbody>
@@ -123,14 +150,14 @@ const AdminDashboard = () => {
           <h2>Top Performing Vehicles</h2>
         </div>
         <div className="vehicles-list">
-          {topVehicles.map((vehicle, idx) => (
-            <div key={idx} className="vehicle-item">
+          {topVehicles.map((vehicle) => (
+            <div key={vehicle.name} className="vehicle-item">
               <div className="vehicle-info">
                 <h3>{vehicle.name}</h3>
-                <p>Bookings: {vehicle.bookings} | Revenue: ₹{vehicle.revenue.toLocaleString()}</p>
+                <p>Bookings: {vehicle.bookings} | Revenue: ₹{vehicle.revenue.toLocaleString("en-IN")}</p>
               </div>
               <div className="vehicle-bar">
-                <div className="bar-fill" style={{width: `${(vehicle.bookings / 156) * 100}%`}}></div>
+                <div className="bar-fill" style={{width: `${(vehicle.bookings / maxBookings) * 100}%`}}></div>
               </div>
             </div>
           ))}

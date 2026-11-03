@@ -1,10 +1,18 @@
 import { useNavigate, useLocation } from "react-router-dom";
+import StatusTimeline from "../components/StatusTimeline";
 import "../styles/confirmation.css";
+
+const methodLabel = {
+  UPI: "UPI",
+  CARD: "Credit/Debit Card",
+  CASH: "Cash on pickup",
+};
 
 const Confirmation = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { booking, paymentMethod } = location.state || {};
+  // Booking as saved by the backend
+  const { booking } = location.state || {};
 
   if (!booking) {
     return (
@@ -14,8 +22,7 @@ const Confirmation = () => {
     );
   }
 
-  // Generate booking ID
-  const bookingId = `BK-${Math.floor(Math.random() * 100000000)}`;
+  const isCash = booking.paymentMethod === "CASH";
 
   return (
     <div className="confirmation-container">
@@ -27,14 +34,20 @@ const Confirmation = () => {
           </svg>
         </div>
 
-        <h1>Booking Confirmed!</h1>
-        <p className="confirmation-message">You're all set. A receipt has been sent to your email.</p>
+        <h1>Booking Request Submitted!</h1>
+        <p className="confirmation-message">
+          Your request is waiting for admin review. You'll get a notification on your dashboard once it is approved.
+        </p>
+
+        <div style={{display: 'flex', justifyContent: 'center'}}>
+          <StatusTimeline status={booking.status} />
+        </div>
 
         {/* Booking Details */}
         <div className="details-section">
           <div className="detail-row">
             <span className="label">Booking ID</span>
-            <span className="value">{bookingId}</span>
+            <span className="value">{booking.bookingCode}</span>
           </div>
 
           <div className="detail-row">
@@ -60,34 +73,39 @@ const Confirmation = () => {
           <div className="detail-row">
             <span className="label">Driver</span>
             <span className="value">
-              {booking.driverType === "SELF_DRIVE" ? "Self Drive" : "With driver"}
+              {booking.driverType === "SELF_DRIVE"
+                ? "Self Drive"
+                : `${booking.driverName} (${booking.driverPhone})`}
             </span>
           </div>
 
           <div className="detail-row">
             <span className="label">Method</span>
-            <span className="value">
-              {paymentMethod === "UPI" ? "UPI" : 
-               paymentMethod === "CARD" ? "Credit/Debit Card" : 
-               "Cash on pickup"}
-            </span>
+            <span className="value">{methodLabel[booking.paymentMethod] || booking.paymentMethod}</span>
           </div>
 
+          {booking.transactionId && (
+            <div className="detail-row">
+              <span className="label">Transaction ID</span>
+              <span className="value">{booking.transactionId}</span>
+            </div>
+          )}
+
           <div className="detail-row highlight">
-            <span className="label">Total paid</span>
+            <span className="label">{isCash ? "Pay at pickup" : "Total paid"}</span>
             <span className="value">₹{booking.total}</span>
           </div>
         </div>
 
         {/* Action Buttons */}
         <div className="action-buttons">
-          <button 
+          <button
             className="btn-bookings"
-            onClick={() => navigate("/my-bookings")}
+            onClick={() => navigate("/dashboard")}
           >
-            View My Bookings
+            Go to My Dashboard
           </button>
-          <button 
+          <button
             className="btn-another"
             onClick={() => navigate("/home")}
           >

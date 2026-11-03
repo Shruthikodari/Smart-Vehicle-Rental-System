@@ -51,7 +51,8 @@ body {
 
 .search-card label { color: #888; font-size: 12px; margin-bottom: 6px; }
 .search-card select,
-.search-card input[type="date"] {
+.search-card input[type="date"],
+.search-card input[type="text"] {
   background: #121212;
   border: 1px solid #222;
   color: #fff;
@@ -232,3 +233,16 @@ body {
 .book-btn:hover {
   background: #ff2a2a;
 }
+/* Top navigation bar */
+.home-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 30px;
+}
+.home-logo { font-size: 22px; font-weight: 700; cursor: pointer; }
+.home-nav-links { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.home-user { color: #bbb; margin-right: 4px; }
+.search-card .field input[type="text"] { width: 100%; box-sizing: border-box; }

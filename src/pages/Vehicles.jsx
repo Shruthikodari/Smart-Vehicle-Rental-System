@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import "../styles/home.css"; // reuse same css
+import { vehicleImage, handleImageError } from "../services/images";
+import API from "../services/api";
 
 const Vehicles = () => {
   const [vehicles, setVehicles] = useState([]);
@@ -7,13 +9,12 @@ const Vehicles = () => {
   const [type, setType] = useState("ALL");
 
   useEffect(() => {
-    fetch("http://localhost:8080/vehicles")
-      .then(res => res.json())
-      .then(data => {
-        console.log("ALL VEHICLES:", data);
-        setVehicles(data);
+    API.get("/vehicles")
+      .then((res) => {
+        console.log("ALL VEHICLES:", res.data);
+        setVehicles(res.data);
       })
-      .catch(err => console.log(err));
+      .catch((err) => console.error("Failed fetching vehicles:", err));
   }, []);
 
   const filtered = vehicles.filter(v =>
@@ -54,7 +55,7 @@ const Vehicles = () => {
         {filtered.map(v => (
           <div className="card" key={v.id}>
 
-            <img src={v.imageUrl} alt={v.name} />
+            <img src={vehicleImage(v.imageUrl)} onError={handleImageError} alt={v.name} />
 
             <div className="card-body">
               <h3>{v.name}</h3>
