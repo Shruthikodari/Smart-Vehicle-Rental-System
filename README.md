@@ -74,20 +74,14 @@ React (Vite :5173)  ──/api/*──►  Vite proxy  ──►  Spring Boot (:
 
 **Requirements:** Java 8 or newer, Node.js 18 or newer. Maven is not needed because the wrapper is included.
 
-### 1. Start the backend
-```bash
-cd backend
-mvnw spring-boot:run          # Windows
-./mvnw spring-boot:run        # macOS / Linux
-```
-The backend runs on http://localhost:8080. On the first run it creates the database in `backend/data/` and fills it with sample customers, vehicles, drivers, about 6 months of bookings, reviews and notifications.
-
-### 2. Start the frontend (in a new terminal)
+### Start the application
 ```bash
 npm install
 npm run dev
 ```
-Open http://localhost:5173
+`npm run dev` starts the backend, waits for the vehicle API to respond, and then starts the frontend. On the first run, the backend creates the database in `backend/data/` and fills it with sample customers, vehicles, drivers, about 6 months of bookings, reviews and notifications. Open http://localhost:5173.
+
+To run the backend and frontend separately, start the backend with `cd backend` followed by `mvnw spring-boot:run` on Windows or `./mvnw spring-boot:run` on macOS/Linux, then run `npm run dev:frontend` from the project root.
 
 ### Demo accounts
 | Role | Login | Where |
