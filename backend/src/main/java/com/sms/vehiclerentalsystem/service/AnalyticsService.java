@@ -136,7 +136,7 @@ public class AnalyticsService {
                                                Map<String, Long> byType, List<Booking> valid) {
         List<Map<String, String>> list = new ArrayList<>();
         if (valid.isEmpty()) {
-            list.add(insight("📊 No data yet", "Insights will appear once customers start booking."));
+            list.add(insight("No data yet", "Insights will appear once customers start booking."));
             return list;
         }
 
@@ -144,24 +144,24 @@ public class AnalyticsService {
         double prev = (double) monthly.get(monthly.size() - 2).get("revenue");
         if (prev > 0) {
             double change = (last - prev) * 100 / prev;
-            list.add(insight("📈 Revenue Trend", String.format("Revenue %s by %.1f%% compared to last month",
+            list.add(insight("Revenue this month", String.format("Revenue %s by %.1f%% compared to last month",
                     change >= 0 ? "increased" : "decreased", Math.abs(change))));
         } else {
-            list.add(insight("📈 Revenue Trend", String.format("₹%,.0f booked this month", last)));
+            list.add(insight("Revenue this month", String.format("₹%,.0f booked this month", last)));
         }
 
         if (!top.isEmpty()) {
             Map<String, Object> best = top.get(0);
-            list.add(insight("🏆 Top Performer", String.format("%s earned the most revenue (₹%,.0f from %d bookings)",
+            list.add(insight("Top earner", String.format("%s earned the most revenue (₹%,.0f from %d bookings)",
                     best.get("name"), (double) best.get("revenue"), (int) best.get("bookings"))));
         }
 
         byType.entrySet().stream().max(Map.Entry.comparingByValue()).ifPresent(e ->
-                list.add(insight("🚗 Most Popular Type", String.format("%s vehicles account for %d%% of bookings",
+                list.add(insight("Most booked type", String.format("%s vehicles account for %d%% of bookings",
                         e.getKey(), Math.round(e.getValue() * 100.0 / valid.size())))));
 
         double avgDays = valid.stream().mapToInt(Booking::getDays).average().orElse(0);
-        list.add(insight("📅 Rental Length", String.format("Customers rent for %.1f days on average", avgDays)));
+        list.add(insight("Typical rental length", String.format("Customers rent for %.1f days on average", avgDays)));
         return list;
     }
 

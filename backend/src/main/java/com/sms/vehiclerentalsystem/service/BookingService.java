@@ -132,6 +132,9 @@ public class BookingService {
         notificationService.notify(user, Notification.Type.INFO, "Booking Request Received",
                 String.format("Your request for %s (%s to %s) is waiting for admin approval.",
                         vehicle.getName(), pickup, dropoff), saved.getBookingCode());
+        notificationService.notifyAdmins(Notification.Type.INFO, "New booking request",
+                String.format("%s requested %s from %s to %s (%s, ₹%.0f).", user.getName(), vehicle.getName(),
+                        pickup, dropoff, request.getPaymentMethod(), saved.getTotal()), saved.getBookingCode());
         return saved;
     }
 
@@ -192,6 +195,13 @@ public class BookingService {
                                 booking.getVehicle().getName(), booking.getPickupDate(), booking.getVehicle().getLocation(),
                                 booking.getDriver() != null ? " Your driver: " + booking.getDriver().getName()
                                         + " (" + booking.getDriver().getPhone() + ")." : ""));
+                if (booking.getDriver() != null) {
+                    notificationService.notify(booking.getDriver().getAccount(), Notification.Type.INFO, "New trip assigned",
+                            String.format("%s, %s to %s. Meet %s (%s) at %s.",
+                                    booking.getVehicle().getName(), booking.getPickupDate(), booking.getReturnDate(),
+                                    booking.getCustomerName(), booking.getCustomerPhone(),
+                                    booking.getVehicle().getLocation()), booking.getBookingCode());
+                }
                 break;
             case REJECTED:
                 require(current == Booking.Status.PENDING, "Only pending bookings can be rejected");
@@ -223,6 +233,23 @@ public class BookingService {
         return bookingRepository.save(booking);
     }
 
+    public List<Booking> findForDriver(Driver driver) {
+        return bookingRepository.findByDriverIdOrderByPickupDateDesc(driver.getId());
+    }
+
+    // Drivers can only start or finish trips that are assigned to them
+    @Transactional
+    public Booking updateStatusByDriver(Long id, Driver driver, Booking.Status newStatus) {
+        Booking booking = bookingRepository.findById(id).orElseThrow(() -> ApiException.notFound("Booking"));
+        if (booking.getDriver() == null || !booking.getDriver().getId().equals(driver.getId())) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "This trip is not assigned to you");
+        }
+        if (newStatus != Booking.Status.ONGOING && newStatus != Booking.Status.COMPLETED) {
+            throw ApiException.badRequest("Drivers can only start or complete a trip");
+        }
+        return updateStatusByAdmin(id, newStatus, null);
+    }
+
     private static void require(boolean condition, String message) {
         if (!condition) {
             throw ApiException.badRequest(message);
@@ -246,12 +273,18 @@ public class BookingService {
 
     private void start(Booking booking) {
         booking.setStatus(Booking.Status.ONGOING);
+        notificationService.notifyAdmins(Notification.Type.INFO, "Rental started",
+                booking.getVehicle().getName() + " is out with " + booking.getCustomerName() + " (" + booking.getBookingCode() + ").",
+                booking.getBookingCode());
         notify(booking, Notification.Type.INFO, "Rental Started",
                 "Your " + booking.getVehicle().getName() + " rental has started. Return it by " + booking.getReturnDate() + ". Drive safe!");
     }
 
     private void complete(Booking booking) {
         booking.setStatus(Booking.Status.COMPLETED);
+        notificationService.notifyAdmins(Notification.Type.SUCCESS, "Rental completed",
+                booking.getVehicle().getName() + " was returned by " + booking.getCustomerName() + " (" + booking.getBookingCode() + ").",
+                booking.getBookingCode());
         if (booking.getDriver() != null) {
             booking.getDriver().setTrips(booking.getDriver().getTrips() + 1);
         }

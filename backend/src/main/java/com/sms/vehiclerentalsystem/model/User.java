@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @Table(name = "users")
 public class User {
 
-    public enum Role { USER, ADMIN }
+    public enum Role { USER, ADMIN, DRIVER }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,7 +35,13 @@ public class User {
     @Column(unique = true)
     private String token;
 
+    // Blocked accounts cannot log in
+    private boolean active = true;
+
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    public boolean isActive() { return active; }
+    public void setActive(boolean active) { this.active = active; }
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }

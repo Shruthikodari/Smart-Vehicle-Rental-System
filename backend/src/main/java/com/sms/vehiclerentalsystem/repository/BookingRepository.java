@@ -39,6 +39,8 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     List<Booking> findByUserIdOrderByPickupDateDesc(Long userId);
 
+    List<Booking> findByDriverIdOrderByPickupDateDesc(Long driverId);
+
     List<Booking> findByStatusAndReturnDateBefore(Booking.Status status, LocalDate date);
 
     List<Booking> findByStatusAndPickupDateLessThanEqual(Booking.Status status, LocalDate date);

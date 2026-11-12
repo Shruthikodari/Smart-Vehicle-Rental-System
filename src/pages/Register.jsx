@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import SiteHeader from "../components/SiteHeader";
 import "../styles/auth.css";
 
 const Register = () => {
@@ -14,7 +15,7 @@ const Register = () => {
   const navigate = useNavigate();
   const location = useLocation();
   // Where to go after signing up (e.g. back to the vehicle the user wanted to book)
-  const from = location.state?.from || "/dashboard";
+  const from = location.state?.from || "/history";
   const fromState = location.state?.fromState;
 
   const handleSubmit = async (e) => {
@@ -67,16 +68,18 @@ const Register = () => {
   };
 
   return (
+    <div>
+    <SiteHeader />
     <div className="auth-container">
       <div className="auth-card">
-        <h1>Create Account</h1>
-        <p className="auth-subtext">Join SmartRide and start renting today</p>
+        <h1>Create your account</h1>
+        <p className="auth-subtext">You need an account to book. It takes less than a minute.</p>
 
         {error && <div className="error-box">{error}</div>}
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>Full Name</label>
+            <label>Full name</label>
             <input
               type="text"
               placeholder="Your full name"
@@ -100,7 +103,7 @@ const Register = () => {
           </div>
 
           <div className="form-group">
-            <label>Phone</label>
+            <label>Mobile number</label>
             <input
               type="tel"
               placeholder="10-digit mobile number"
@@ -125,15 +128,16 @@ const Register = () => {
           </div>
 
           <button type="submit" className="auth-btn" disabled={loading}>
-            {loading ? "Creating Account..." : "Create Account →"}
+            {loading ? "Creating account..." : "Create account"}
           </button>
         </form>
 
         <p className="auth-footer">
           Already have an account?{" "}
-          <Link to="/login" state={location.state} style={{ color: "#ff5757" }}>Log in</Link>
+          <Link to="/login" state={location.state}>Log in</Link>
         </p>
       </div>
+    </div>
     </div>
   );
 };

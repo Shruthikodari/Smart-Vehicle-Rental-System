@@ -1,5 +1,6 @@
 package com.sms.vehiclerentalsystem.config;
 
+import com.sms.vehiclerentalsystem.dto.NewDriverRequest;
 import com.sms.vehiclerentalsystem.model.*;
 import com.sms.vehiclerentalsystem.repository.*;
 import com.sms.vehiclerentalsystem.service.AuthService;
@@ -25,6 +26,7 @@ public class DataSeeder implements CommandLineRunner {
     public static final String DEMO_CUSTOMER_EMAIL = "demo@smartride.com";
     public static final String DEMO_CUSTOMER_PASSWORD = "demo1234";
     public static final String SAMPLE_CUSTOMER_PASSWORD = "password123";
+    public static final String DRIVER_PASSWORD = "driver123";
 
     private static final String[] COMMENTS = {
             "Clean car and smooth pickup. Will book again!",
@@ -77,42 +79,58 @@ public class DataSeeder implements CommandLineRunner {
             vehicleRepository.saveAll(Arrays.asList(
                     new Vehicle("Hyundai Creta", "HYUNDAI", "SUV",
                             "https://images.unsplash.com/photo-1609521263047-f8f205293f24?w=800",
-                            1900, 4.5, 17, "Petrol", "Automatic", 5, "Andheri, Mumbai"),
+                            1900, 4.5, 17, "Petrol", "Automatic", 5, "HITEC City, Hyderabad"),
                     new Vehicle("Maruti Swift", "MARUTI SUZUKI", "CAR",
                             "https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=800",
-                            1200, 4.4, 23, "Petrol", "Manual", 5, "Bandra, Mumbai"),
+                            1200, 4.4, 23, "Petrol", "Manual", 5, "Kukatpally, Hyderabad"),
                     new Vehicle("Honda City", "HONDA", "CAR",
                             "https://images.unsplash.com/photo-1619767886558-efdc259cde1a?w=800",
-                            1500, 4.6, 18, "Petrol", "Automatic", 5, "Powai, Mumbai"),
+                            1500, 4.6, 18, "Petrol", "Automatic", 5, "Madhapur, Hyderabad"),
                     new Vehicle("Volvo S90", "VOLVO", "LUXURY",
                             "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800",
-                            5000, 4.8, 12, "Diesel", "Automatic", 5, "Airport T2, Mumbai"),
+                            5000, 4.8, 12, "Diesel", "Automatic", 5, "RGIA Airport, Hyderabad"),
                     new Vehicle("BMW X5", "BMW", "LUXURY",
                             "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800",
-                            6500, 4.8, 11, "Diesel", "Automatic", 5, "Airport T2, Mumbai"),
+                            6500, 4.8, 11, "Diesel", "Automatic", 5, "Banjara Hills, Hyderabad"),
                     new Vehicle("Mahindra Scorpio", "MAHINDRA", "SUV",
                             "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=800",
-                            2500, 4.3, 15, "Diesel", "Manual", 7, "Thane, Mumbai"),
+                            2500, 4.3, 15, "Diesel", "Manual", 7, "Secunderabad, Hyderabad"),
                     new Vehicle("Tesla Model 3", "TESLA", "EV",
                             "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800",
-                            4500, 4.9, 450, "Electric", "Automatic", 5, "BKC, Mumbai"),
+                            4500, 4.9, 450, "Electric", "Automatic", 5, "Gachibowli, Hyderabad"),
                     new Vehicle("Royal Enfield Classic 350", "ROYAL ENFIELD", "BIKE",
                             "https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=800",
-                            800, 4.6, 35, "Petrol", "Manual", 2, "Bandra, Mumbai"),
+                            800, 4.6, 35, "Petrol", "Manual", 2, "Ameerpet, Hyderabad"),
                     new Vehicle("KTM Duke 390", "KTM", "BIKE",
                             "https://images.unsplash.com/photo-1449426468159-d96dbf08f19f?w=800",
-                            1200, 4.7, 25, "Petrol", "Manual", 2, "Andheri, Mumbai")
+                            1200, 4.7, 25, "Petrol", "Manual", 2, "Kondapur, Hyderabad"),
+                    new Vehicle("Maruti Swift", "MARUTI SUZUKI", "CAR",
+                            "https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=800",
+                            1300, 4.4, 23, "Petrol", "Automatic", 5, "Koramangala, Bengaluru"),
+                    new Vehicle("Royal Enfield Classic 350", "ROYAL ENFIELD", "BIKE",
+                            "https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=800",
+                            850, 4.6, 35, "Petrol", "Manual", 2, "Indiranagar, Bengaluru"),
+                    new Vehicle("Hyundai Creta", "HYUNDAI", "SUV",
+                            "https://images.unsplash.com/photo-1609521263047-f8f205293f24?w=800",
+                            2000, 4.5, 17, "Diesel", "Manual", 5, "Andheri, Mumbai")
             ));
         }
 
         if (driverRepository.count() == 0) {
-            driverRepository.saveAll(Arrays.asList(
-                    new Driver("Raj Kumar", "9876543210", "raj@smartride.com", "MH0120190001234", 4.8, 0),
-                    new Driver("Priya Singh", "9876543211", "priya@smartride.com", "MH0220180004321", 4.6, 0),
-                    new Driver("Arjun Patel", "9876543212", "arjun@smartride.com", "MH0320200005678", 4.2, 0),
-                    new Driver("Neha Verma", "9876543213", "neha@smartride.com", "MH0420170008765", 4.9, 0),
-                    new Driver("Imran Shaikh", "9876543214", "imran@smartride.com", "MH0520210002468", 4.5, 0)
+            List<Driver> drivers = driverRepository.saveAll(Arrays.asList(
+                    new Driver("Raj Kumar", "9876543210", "raj@smartride.com", "TS0920190001234", 4.8, 0),
+                    new Driver("Priya Singh", "9876543211", "priya@smartride.com", "TS0820180004321", 4.6, 0),
+                    new Driver("Arjun Patel", "9876543212", "arjun@smartride.com", "TS0720200005678", 4.2, 0),
+                    new Driver("Neha Verma", "9876543213", "neha@smartride.com", "TS1020170008765", 4.9, 0),
+                    new Driver("Imran Shaikh", "9876543214", "imran@smartride.com", "TS1320210002468", 4.5, 0)
             ));
+            // Each driver gets a login for the driver portal
+            for (Driver d : drivers) {
+                User account = authService.createAccount(d.getName(), d.getEmail(), d.getPhone(),
+                        DRIVER_PASSWORD, User.Role.DRIVER);
+                d.setAccount(account);
+            }
+            driverRepository.saveAll(drivers);
         }
 
         if (bookingRepository.count() == 0) {
@@ -196,6 +214,39 @@ public class DataSeeder implements CommandLineRunner {
 
         seedReviews(created, demo, random);
         seedNotifications(demo);
+        seedStaffNotifications(created);
+
+        // A driver who signed up and is waiting for admin approval (also notifies the admins)
+        NewDriverRequest pending = new NewDriverRequest();
+        pending.setName("Suresh Yadav");
+        pending.setEmail("suresh@smartride.com");
+        pending.setPhone("9876543215");
+        pending.setLicenseNumber("TS0820220007531");
+        pending.setPassword(DRIVER_PASSWORD);
+        authService.registerDriver(pending);
+    }
+
+    // What admins and drivers would have been told about the bookings that are still open
+    private void seedStaffNotifications(List<Booking> bookings) {
+        List<User> admins = userRepository.findByRoleOrderByCreatedAtDesc(User.Role.ADMIN);
+        for (Booking b : bookings) {
+            if (b.getStatus() == Booking.Status.PENDING) {
+                for (User admin : admins) {
+                    note(admin, b, Notification.Type.INFO, "New booking request",
+                            String.format("%s requested %s from %s to %s (%s, ₹%.0f).", b.getCustomerName(),
+                                    b.getVehicle().getName(), b.getPickupDate(), b.getReturnDate(),
+                                    b.getPayment().getMethod(), b.getTotal()), false, b.getCreatedAt());
+                }
+            }
+            boolean openTrip = b.getStatus() == Booking.Status.APPROVED || b.getStatus() == Booking.Status.ONGOING;
+            if (openTrip && b.getDriver() != null && b.getDriver().getAccount() != null) {
+                note(b.getDriver().getAccount(), b, Notification.Type.INFO, "New trip assigned",
+                        String.format("%s, %s to %s. Meet %s (%s) at %s.", b.getVehicle().getName(),
+                                b.getPickupDate(), b.getReturnDate(), b.getCustomerName(), b.getCustomerPhone(),
+                                b.getVehicle().getLocation()),
+                        b.getStatus() == Booking.Status.ONGOING, b.getCreatedAt().plusHours(5));
+            }
+        }
     }
 
     private static LocalDate later(LocalDate a, LocalDate b) {

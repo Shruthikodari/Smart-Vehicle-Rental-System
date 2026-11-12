@@ -35,9 +35,9 @@ const AdminLogin = () => {
       // Store admin session issued by the backend
       localStorage.setItem("adminToken", res.data.token);
       localStorage.setItem("adminUser", JSON.stringify(res.data.data));
-      navigate("/admin", { replace: true });
+      navigate("/admin/dashboard", { replace: true });
     } catch (err) {
-      setError("❌ " + errorMessage(err, "Login failed. Please try again."));
+      setError(errorMessage(err, "Login failed. Please try again."));
     } finally {
       setLoading(false);
     }
@@ -45,29 +45,23 @@ const AdminLogin = () => {
 
   return (
     <div className="admin-login-container">
-      {/* Top Navigation */}
-      <div className="admin-login-nav">
-        <button className="back-btn" onClick={() => navigate("/")}>← Back to Home</button>
-      </div>
-
-      {/* Login Card */}
       <div className="login-card">
         <div className="login-header">
-          <div className="login-icon">🔐</div>
-          <h1>Admin Portal Login</h1>
-          <p>Secure access for administrators only</p>
+          <div className="site-logo"><span className="logo-mark">S</span>SmartRide</div>
+          <h1>Staff login</h1>
+          <p>For SmartRide operations staff only.</p>
         </div>
 
         <form onSubmit={handleLogin} className="login-form">
           {error && <div className="error-box">{error}</div>}
 
           <div className="form-group">
-            <label>Admin Email</label>
+            <label>Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="admin@smartride.com"
+              placeholder="name@smartride.com"
               disabled={loading}
             />
           </div>
@@ -78,32 +72,22 @@ const AdminLogin = () => {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter password"
               disabled={loading}
             />
           </div>
 
           <button type="submit" className="login-btn" disabled={loading}>
-            {loading ? "Logging in..." : "Login to Admin Panel →"}
+            {loading ? "Logging in..." : "Log in"}
           </button>
         </form>
 
-        {/* Security Info */}
-        <div className="security-info">
-          <h4>🛡️ Security Features</h4>
-          <ul>
-            <li>✓ Token-based session management</li>
-            <li>✓ BCrypt-hashed passwords</li>
-            <li>✓ Role-based access control</li>
-            <li>✓ Server-side validation</li>
-          </ul>
+        <div className="demo-hint">
+          Demo admin: <strong>admin@smartride.com</strong> / <strong>admin1234</strong>
         </div>
       </div>
 
-      {/* Footer */}
       <div className="admin-login-footer">
-        <p>SmartRide Admin Portal © 2026</p>
-        <p>For support contact: support@smartride.com</p>
+        <button onClick={() => navigate("/")}>← Back to the customer site</button>
       </div>
     </div>
   );

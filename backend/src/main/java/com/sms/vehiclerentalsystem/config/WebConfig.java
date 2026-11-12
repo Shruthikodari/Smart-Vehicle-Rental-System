@@ -19,11 +19,12 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addInterceptor(authInterceptor).excludePathPatterns("/h2-console/**", "/error");
     }
 
-    // The Vite dev server proxies /api to this backend, but allow direct calls from local dev ports too
+    // The browser's Origin is forwarded through the Vite proxy, so accept the frontend on any local port
+    // (Vite moves to 5174, 5175... when 5173 is busy) and via 127.0.0.1 as well as localhost
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("http://localhost:5173", "http://localhost:3000", "http://localhost:3001")
+                .allowedOriginPatterns("http://localhost:*", "http://127.0.0.1:*")
                 .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .maxAge(3600);

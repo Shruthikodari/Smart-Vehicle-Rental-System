@@ -13,6 +13,8 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     List<Review> findTop20ByOrderByCreatedAtDesc();
 
+    List<Review> findByUserIdOrderByCreatedAtDesc(Long userId);
+
     boolean existsByBookingId(Long bookingId);
 
     @Query("select avg(r.vehicleRating) from Review r where r.vehicle.id = :vehicleId")

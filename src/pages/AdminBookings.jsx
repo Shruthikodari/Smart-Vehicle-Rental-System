@@ -1,32 +1,37 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import API, { errorMessage } from "../services/api";
-import "../styles/admin.css";
+import AdminLayout from "../components/AdminLayout";
 
-const STATUSES = ["ALL", "PENDING", "APPROVED", "ONGOING", "COMPLETED", "CANCELLED", "REJECTED"];
+const ACTIVE = ["PENDING", "APPROVED", "ONGOING"];
+const TABS = [
+  { value: "ACTION", label: "Needs action", match: b => ACTIVE.includes(b.status) },
+  { value: "PENDING", label: "Waiting for approval", match: b => b.status === "PENDING" },
+  { value: "APPROVED", label: "Approved", match: b => b.status === "APPROVED" },
+  { value: "ONGOING", label: "Out on rent", match: b => b.status === "ONGOING" },
+  { value: "COMPLETED", label: "Completed", match: b => b.status === "COMPLETED" },
+  { value: "CLOSED", label: "Cancelled / rejected", match: b => b.status === "CANCELLED" || b.status === "REJECTED" },
+  { value: "ALL", label: "All", match: () => true },
+];
+const PAGE_SIZE = 20;
+
 const today = () => new Date().toISOString().slice(0, 10);
+const shortDate = (iso) => new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+const label = (s) => s.charAt(0) + s.slice(1).toLowerCase();
 
 const AdminBookings = () => {
-  const navigate = useNavigate();
   const [bookings, setBookings] = useState([]);
-  const [filter, setFilter] = useState("ALL");
+  const [tab, setTab] = useState("ACTION");
+  const [search, setSearch] = useState("");
+  const [shown, setShown] = useState(PAGE_SIZE);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const handleLogout = () => {
-    localStorage.removeItem("adminToken");
-    localStorage.removeItem("adminUser");
-    navigate("/admin-login", { replace: true });
-  };
-
-  const loadBookings = () => {
+  useEffect(() => {
     API.get("/admin/bookings")
       .then(res => setBookings(res.data))
       .catch(err => setError(errorMessage(err, "Could not load bookings")))
       .finally(() => setLoading(false));
-  };
-
-  useEffect(loadBookings, []);
+  }, []);
 
   const updateStatus = async (booking, status, message) => {
     let note = null;
@@ -45,77 +50,58 @@ const AdminBookings = () => {
     }
   };
 
-  const visible = filter === "ALL" ? bookings : bookings.filter(b => b.status === filter);
-  const count = (status) => bookings.filter(b => b.status === status).length;
-  const revenue = bookings.filter(b => b.paymentStatus === "PAID").reduce((sum, b) => sum + b.total, 0);
+  const selectTab = (value) => {
+    setTab(value);
+    setShown(PAGE_SIZE);
+  };
+
+  const query = search.trim().toLowerCase();
+  const current = TABS.find(t => t.value === tab);
+  const filtered = bookings
+    .filter(current.match)
+    .filter(b => !query || [b.bookingCode, b.customerName, b.customerPhone, b.vehicleName]
+      .some(f => f?.toLowerCase().includes(query)));
+  // Open bookings are listed by pickup date (soonest first); history is listed newest first
+  const visible = (tab === "ACTION" || ACTIVE.includes(tab)
+    ? [...filtered].sort((a, b) => a.pickupDate.localeCompare(b.pickupDate))
+    : filtered
+  ).slice(0, shown);
+
+  const count = (value) => bookings.filter(TABS.find(t => t.value === value).match).length;
 
   return (
-    <div className="admin-container">
-      {/* Header */}
-      <div className="admin-header">
-        <h1>Booking Management</h1>
-        <div className="admin-nav">
-          <button onClick={() => navigate("/admin")}>📊 Dashboard</button>
-          <button onClick={() => navigate("/admin/vehicles")}>🚗 Vehicles</button>
-          <button onClick={() => navigate("/admin/drivers")}>👥 Drivers</button>
-          <button className="active">📅 Bookings</button>
-          <button onClick={() => navigate("/admin/analytics")}>📈 Analytics</button>
-          <button className="logout-btn" onClick={handleLogout}>🚪 Logout</button>
-        </div>
+    <AdminLayout title="Bookings" subtitle="Review new requests and move rentals through pickup and return.">
+      {error && <div className="form-error">{error}</div>}
+
+      <div className="tab-row">
+        {TABS.map(t => (
+          <button key={t.value} className={`tab ${tab === t.value ? "active" : ""}`} onClick={() => selectTab(t.value)}>
+            {t.label} <span className="tab-count">{count(t.value)}</span>
+          </button>
+        ))}
       </div>
 
-      {error && <p style={{color: '#ff6b6b'}}>{error}</p>}
-
-      {/* Booking Stats */}
-      <section className="admin-section">
-        <h2>Booking Summary</h2>
-        <div className="stats-flex">
-          <div className="stat-small">
-            <p className="label">Total Bookings</p>
-            <h3>{bookings.length}</h3>
-          </div>
-          <div className="stat-small">
-            <p className="label">Pending Approval</p>
-            <h3>{count("PENDING")}</h3>
-          </div>
-          <div className="stat-small">
-            <p className="label">Approved (Upcoming)</p>
-            <h3>{count("APPROVED")}</h3>
-          </div>
-          <div className="stat-small">
-            <p className="label">Ongoing Rentals</p>
-            <h3>{count("ONGOING")}</h3>
-          </div>
-          <div className="stat-small">
-            <p className="label">Completed</p>
-            <h3>{count("COMPLETED")}</h3>
-          </div>
-          <div className="stat-small">
-            <p className="label">Revenue Collected</p>
-            <h3>₹{revenue.toLocaleString("en-IN")}</h3>
-          </div>
-        </div>
-      </section>
-
-      {/* Bookings Table */}
       <section className="admin-section">
         <div className="section-header">
-          <h2>All Bookings</h2>
-          <select className="status-select" value={filter} onChange={(e) => setFilter(e.target.value)}>
-            {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
+          <input
+            className="table-search"
+            type="text"
+            placeholder="Search by booking ID, customer, phone or vehicle"
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setShown(PAGE_SIZE); }}
+          />
+          <span className="muted-text">{filtered.length} booking{filtered.length === 1 ? "" : "s"}</span>
         </div>
+
         {loading ? <p>Loading bookings...</p> : (
           <table className="admin-table">
             <thead>
               <tr>
-                <th>Booking ID</th>
-                <th>Vehicle</th>
+                <th>Booking</th>
                 <th>Customer</th>
+                <th>Vehicle</th>
                 <th>Dates</th>
-                <th>Driver</th>
                 <th>Amount</th>
-                <th>Payment</th>
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
@@ -123,47 +109,65 @@ const AdminBookings = () => {
             <tbody>
               {visible.map(booking => (
                 <tr key={booking.id}>
-                  <td>{booking.bookingCode}</td>
-                  <td>{booking.vehicleName}</td>
+                  <td className="nowrap">
+                    {booking.bookingCode}
+                    <small className="cell-sub">Booked {shortDate(booking.createdAt)}</small>
+                  </td>
                   <td>
                     {booking.customerName}
-                    <br /><small style={{color: '#888'}}>{booking.customerPhone || booking.customerEmail}</small>
+                    <small className="cell-sub">{booking.customerPhone || booking.customerEmail}</small>
                   </td>
-                  <td>{booking.pickupDate} → {booking.returnDate}</td>
-                  <td>{booking.driverName || "Self drive"}</td>
-                  <td>₹{booking.total.toLocaleString("en-IN")}</td>
-                  <td>{booking.paymentMethod} · {booking.paymentStatus}</td>
-                  <td><span className={`status-badge ${booking.status.toLowerCase()}`}>{booking.status}</span></td>
                   <td>
+                    {booking.vehicleName}
+                    <small className="cell-sub">{booking.driverName ? `Driver: ${booking.driverName}` : "Self-drive"}</small>
+                  </td>
+                  <td className="nowrap">
+                    {shortDate(booking.pickupDate)} – {shortDate(booking.returnDate)}
+                    <small className="cell-sub">{booking.days} day{booking.days === 1 ? "" : "s"}</small>
+                  </td>
+                  <td className="nowrap">
+                    ₹{booking.total.toLocaleString("en-IN")}
+                    <small className="cell-sub">{booking.paymentMethod} · {booking.paymentStatus.toLowerCase()}</small>
+                  </td>
+                  <td><span className={`status-badge ${booking.status.toLowerCase()}`}>{label(booking.status)}</span></td>
+                  <td className="nowrap">
                     {booking.status === "PENDING" && (
                       <>
-                        <button className="btn-small approve" onClick={() => updateStatus(booking, "APPROVED", "Approve")}>✓ Approve</button>
-                        <button className="btn-small reject" onClick={() => updateStatus(booking, "REJECTED", "Reject")}>✕ Reject</button>
+                        <button className="btn-small approve" onClick={() => updateStatus(booking, "APPROVED", "Approve")}>Approve</button>
+                        <button className="btn-small reject" onClick={() => updateStatus(booking, "REJECTED", "Reject")}>Reject</button>
                       </>
                     )}
                     {booking.status === "APPROVED" && (
                       <>
                         {booking.pickupDate <= today() && (
-                          <button className="btn-small start" onClick={() => updateStatus(booking, "ONGOING", "Start rental for")}>▶ Start Rental</button>
+                          <button className="btn-small start" onClick={() => updateStatus(booking, "ONGOING", "Start rental for")}>Start rental</button>
                         )}
-                        <button className="btn-small reject" onClick={() => updateStatus(booking, "CANCELLED", "Cancel")}>✕ Cancel</button>
+                        <button className="btn-small reject" onClick={() => updateStatus(booking, "CANCELLED", "Cancel")}>Cancel</button>
                       </>
                     )}
                     {booking.status === "ONGOING" && (
-                      <button className="btn-small approve" onClick={() => updateStatus(booking, "COMPLETED", "Mark as returned and complete")}>✓ Complete</button>
+                      <button className="btn-small approve" onClick={() => updateStatus(booking, "COMPLETED", "Mark as returned and complete")}>Mark returned</button>
                     )}
-                    {["COMPLETED", "CANCELLED", "REJECTED"].includes(booking.status) && (booking.adminNote || "—")}
+                    {["COMPLETED", "CANCELLED", "REJECTED"].includes(booking.status) && (
+                      <span className="muted-text">{booking.adminNote || "—"}</span>
+                    )}
                   </td>
                 </tr>
               ))}
               {visible.length === 0 && (
-                <tr><td colSpan="9" style={{textAlign: 'center', color: '#888'}}>No bookings</td></tr>
+                <tr><td colSpan="7" className="empty-cell">Nothing here right now.</td></tr>
               )}
             </tbody>
           </table>
         )}
+
+        {filtered.length > shown && (
+          <button className="btn-small show-more" onClick={() => setShown(shown + PAGE_SIZE)}>
+            Show more ({filtered.length - shown} left)
+          </button>
+        )}
       </section>
-    </div>
+    </AdminLayout>
   );
 };
 

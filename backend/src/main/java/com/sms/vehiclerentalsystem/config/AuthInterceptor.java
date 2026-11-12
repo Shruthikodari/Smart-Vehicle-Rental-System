@@ -13,8 +13,8 @@ import java.util.Optional;
 
 /**
  * Reads the "Authorization: Bearer <token>" header and stores the logged-in user on the request.
- * Every /admin/** endpoint requires a token that belongs to an ADMIN account.
- * Customer endpoints (bookings, dashboard, notifications, writing reviews) require any logged-in account.
+ * /admin/** needs an ADMIN account, /driver/** a DRIVER account, and customer endpoints
+ * (bookings, profile, notifications, writing reviews) a customer (USER) account.
  */
 @Component
 public class AuthInterceptor implements HandlerInterceptor {
@@ -40,18 +40,22 @@ public class AuthInterceptor implements HandlerInterceptor {
         String uri = request.getRequestURI();
         boolean customerArea = uri.startsWith("/bookings") || uri.startsWith("/notifications") || uri.startsWith("/me")
                 || (uri.startsWith("/reviews") && "POST".equalsIgnoreCase(request.getMethod()));
-        if (customerArea && !user.isPresent()) {
-            throw new ApiException(HttpStatus.UNAUTHORIZED, "Please log in to continue");
-        }
-
-        if (uri.startsWith("/admin")) {
-            if (!user.isPresent()) {
-                throw new ApiException(HttpStatus.UNAUTHORIZED, "Please log in as admin");
-            }
-            if (user.get().getRole() != User.Role.ADMIN) {
-                throw new ApiException(HttpStatus.FORBIDDEN, "Admin access required");
-            }
+        if (customerArea) {
+            requireRole(user, User.Role.USER, "Please log in to continue");
+        } else if (uri.startsWith("/admin")) {
+            requireRole(user, User.Role.ADMIN, "Please log in as admin");
+        } else if (uri.startsWith("/driver")) {
+            requireRole(user, User.Role.DRIVER, "Please log in as a driver");
         }
         return true;
+    }
+
+    private static void requireRole(Optional<User> user, User.Role role, String loginMessage) {
+        if (!user.isPresent()) {
+            throw new ApiException(HttpStatus.UNAUTHORIZED, loginMessage);
+        }
+        if (user.get().getRole() != role) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "You don't have access to this page");
+        }
     }
 }

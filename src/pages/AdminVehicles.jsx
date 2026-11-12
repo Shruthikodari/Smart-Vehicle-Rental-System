@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import API, { errorMessage } from "../services/api";
-import "../styles/admin.css";
+import AdminLayout from "../components/AdminLayout";
 
 const EMPTY_FORM = {
   name: "", brand: "", type: "CAR", pricePerDay: "", mileage: "", fuelType: "Petrol",
@@ -9,19 +8,12 @@ const EMPTY_FORM = {
 };
 
 const AdminVehicles = () => {
-  const navigate = useNavigate();
   const [vehicles, setVehicles] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState(EMPTY_FORM);
   const [formError, setFormError] = useState("");
   const [error, setError] = useState("");
-
-  const handleLogout = () => {
-    localStorage.removeItem("adminToken");
-    localStorage.removeItem("adminUser");
-    navigate("/admin-login", { replace: true });
-  };
 
   useEffect(() => {
     API.get("/admin/vehicles")
@@ -95,30 +87,18 @@ const AdminVehicles = () => {
   };
 
   return (
-    <div className="admin-container">
-      {/* Header */}
-      <div className="admin-header">
-        <h1>Vehicle Management</h1>
-        <div className="admin-nav">
-          <button onClick={() => navigate("/admin")}>📊 Dashboard</button>
-          <button className="active">🚗 Vehicles</button>
-          <button onClick={() => navigate("/admin/drivers")}>👥 Drivers</button>
-          <button onClick={() => navigate("/admin/bookings")}>📅 Bookings</button>
-          <button onClick={() => navigate("/admin/analytics")}>📈 Analytics</button>
-          <button className="logout-btn" onClick={handleLogout}>🚪 Logout</button>
-        </div>
-      </div>
+    <AdminLayout title="Vehicles" subtitle="Add, edit or take vehicles out of service. Changes are saved to the database straight away.">
 
-      {error && <p style={{color: '#ff6b6b'}}>{error}</p>}
+      {error && <div className="form-error">{error}</div>}
 
       {/* Add Vehicle Button */}
-      <button className="btn-add" onClick={() => showForm ? setShowForm(false) : openAdd()}>+ Add New Vehicle</button>
+      <button className="btn-add" onClick={() => showForm ? setShowForm(false) : openAdd()}>Add vehicle</button>
 
       {/* Add / Edit Vehicle Form */}
       {showForm && (
         <div className="admin-form">
-          <h3>{editingId ? "Edit Vehicle" : "Add New Vehicle"}</h3>
-          {formError && <p style={{color: '#ff6b6b'}}>{formError}</p>}
+          <h3>{editingId ? "Edit vehicle" : "New vehicle"}</h3>
+          {formError && <div className="form-error">{formError}</div>}
           <div className="form-grid">
             <input type="text" placeholder="Vehicle Name" {...field("name")} />
             <input type="text" placeholder="Brand" {...field("brand")} />
@@ -142,10 +122,10 @@ const AdminVehicles = () => {
               <option>Automatic</option>
             </select>
             <input type="number" placeholder="Seats" {...field("seatingCapacity")} />
-            <input type="text" placeholder="Pickup Location" {...field("location")} />
+            <input type="text" placeholder="Area, City (e.g. Gachibowli, Hyderabad)" {...field("location")} />
             <input type="number" step="0.1" min="0" max="5" placeholder="Rating" {...field("rating")} />
             <input type="text" placeholder="Image URL" {...field("imageUrl")} />
-            <button className="btn-submit" onClick={handleSave}>{editingId ? "Save Changes" : "Add Vehicle"}</button>
+            <button className="btn-submit" onClick={handleSave}>{editingId ? "Save changes" : "Add vehicle"}</button>
             <button className="btn-cancel" onClick={() => setShowForm(false)}>Cancel</button>
           </div>
         </div>
@@ -194,7 +174,7 @@ const AdminVehicles = () => {
           </tbody>
         </table>
       </section>
-    </div>
+    </AdminLayout>
   );
 };
 

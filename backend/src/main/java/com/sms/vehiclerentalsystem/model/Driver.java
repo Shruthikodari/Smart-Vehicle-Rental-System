@@ -1,5 +1,7 @@
 package com.sms.vehiclerentalsystem.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 
@@ -7,7 +9,8 @@ import javax.validation.constraints.NotBlank;
 @Table(name = "drivers")
 public class Driver {
 
-    public enum Status { ACTIVE, BLOCKED }
+    // PENDING = registered themselves and waiting for admin approval
+    public enum Status { PENDING, ACTIVE, BLOCKED }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,6 +29,11 @@ public class Driver {
 
     @Enumerated(EnumType.STRING)
     private Status status = Status.ACTIVE;
+
+    // Login account for the driver portal
+    @JsonIgnore
+    @OneToOne
+    private User account;
 
     public Driver() {}
 
@@ -58,6 +66,9 @@ public class Driver {
 
     public int getTrips() { return trips; }
     public void setTrips(int trips) { this.trips = trips; }
+
+    public User getAccount() { return account; }
+    public void setAccount(User account) { this.account = account; }
 
     public Status getStatus() { return status; }
     public void setStatus(Status status) { this.status = status; }

@@ -1,6 +1,7 @@
 package com.sms.vehiclerentalsystem.controller;
 
 import com.sms.vehiclerentalsystem.config.AuthInterceptor;
+import com.sms.vehiclerentalsystem.dto.NewDriverRequest;
 import com.sms.vehiclerentalsystem.dto.RegisterRequest;
 import com.sms.vehiclerentalsystem.exception.ApiException;
 import com.sms.vehiclerentalsystem.model.User;
@@ -32,6 +33,14 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED).body(body);
     }
 
+    @PostMapping("/register/driver")
+    public ResponseEntity<Map<String, Object>> registerDriver(@Valid @RequestBody NewDriverRequest request) {
+        authService.registerDriver(request);
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("message", "Registration received. You can log in once an admin approves your account.");
+        return ResponseEntity.status(HttpStatus.CREATED).body(body);
+    }
+
     @PostMapping("/login/user")
     public Map<String, Object> loginUser(@RequestBody Map<String, String> credentials) {
         return session(authService.login(credentials.get("email"), credentials.get("password"), User.Role.USER));
@@ -40,6 +49,11 @@ public class AuthController {
     @PostMapping("/login/admin")
     public Map<String, Object> loginAdmin(@RequestBody Map<String, String> credentials) {
         return session(authService.login(credentials.get("email"), credentials.get("password"), User.Role.ADMIN));
+    }
+
+    @PostMapping("/login/driver")
+    public Map<String, Object> loginDriver(@RequestBody Map<String, String> credentials) {
+        return session(authService.login(credentials.get("email"), credentials.get("password"), User.Role.DRIVER));
     }
 
     @GetMapping("/me")

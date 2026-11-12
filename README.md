@@ -1,48 +1,91 @@
 # SmartRide – Smart Vehicle Rental System
 
-A full-stack vehicle rental platform built with **React (Vite)** and **Spring Boot**. Customers browse cars, bikes, SUVs, luxury cars and EVs, check live availability, and request a booking with or without a driver. Every booking is reviewed by an admin and then moves through its rental lifecycle. When the rental is over, customers get notifications and can leave a review.
+A full-stack vehicle rental platform built with **React (Vite)** and **Spring Boot**, with three roles:
 
-## Application Flow
+- **Customers** browse cars, bikes, SUVs, luxury cars and EVs, book with or without a driver, and review their trips.
+- **Admins** approve bookings and driver registrations, and manage vehicles, drivers and customers.
+- **Drivers** see the trips assigned to them, start and end each trip, and track their earnings.
 
+## Roles and Flows
+
+### Customer
 ```
-Home → Browse / Search / Filter → Vehicle Details (+ reviews)
-     → Login / Register → Select Dates → Check Availability
-          ├─ Unavailable → choose other dates
-          └─ Available → Self Drive | With Driver (check & assign free driver)
-     → Price calculated on server → Payment → Booking created as PENDING
-     → Admin Review ── Reject → REJECTED (payment refunded)
-                    └─ Approve → APPROVED → pickup day → ONGOING → return day → COMPLETED
-     → Rental History · Notifications · Review (updates vehicle & driver ratings)
+Landing → Home (browse as a guest) → Vehicle Details → "Book now"
+   → not logged in? → Login / Register → straight back to the Booking page
+   → Booking (dates, driver, live availability, price) → Payment → Confirmation (PENDING)
+   → History → Booking Details → Review
 ```
+
+### Admin
+```
+Admin Login → Dashboard → Vehicle / Driver / User Management
+   → Booking Management → Approve / Reject → Analytics · Reports · Notifications
+```
+
+### Driver
+```
+Driver Register → (admin approves) → Driver Login → Dashboard → Assigned trips
+   → Start trip → ONGOING → End trip → COMPLETED → Earnings + history
+```
+
+### Booking lifecycle
+```
+PENDING ──admin approves──► APPROVED ──driver / admin starts──► ONGOING ──driver / admin ends──► COMPLETED
+   │                           │
+   └─admin rejects─► REJECTED  └─customer / admin cancels─► CANCELLED   (paid bookings are refunded)
+```
+If nobody acts, an hourly job starts approved rentals on the pick-up day, completes them after the return day, and expires requests that were never reviewed.
+
+## Pages
+
+| Customer | Admin | Driver |
+|---|---|---|
+| `/` Landing | `/admin/login` | `/driver/register` |
+| `/home` Browse vehicles | `/admin/dashboard` | `/driver/login` |
+| `/vehicle/:id` Vehicle details | `/admin/vehicles` | `/driver/dashboard` |
+| `/login`, `/register` | `/admin/drivers` (approve registrations) | `/driver/bookings` Assigned trips |
+| `/booking/:id` Booking | `/admin/users` | `/driver/trips/:id` Trip details |
+| `/payment/:id` Payment | `/admin/bookings` (approve / reject) | `/driver/earnings` |
+| `/confirmation` | `/admin/analytics` | `/driver/profile` |
+| `/history` My bookings | `/admin/reports` (CSV export) | |
+| `/history/:code` Booking details | `/admin/notifications` | |
+| `/reviews`, `/reviews/:code` | | |
+| `/profile`, `/notifications` | | |
 
 ## Features
 
 **Customer**
-- Browse vehicles, search by name, brand or area, filter by type (Car / SUV / Bike / Luxury / EV)
-- Vehicle details page with specs, rating and customer reviews
-- Login / Register (required to book; returns the customer to the vehicle afterwards)
+- Browse vehicles, search by name, brand or area, filter by city and type, sort by price or rating
+- Vehicle details with specs and customer reviews; guests can look around, and booking asks them to log in first
 - Live availability check, plus a driver availability check for with-driver bookings
 - Price breakdown (base + driver charges + 5% tax), calculated on the server
 - Pay by UPI or card (simulated), or cash on pickup
-- **Customer Dashboard:** stats, notifications, current bookings with a status timeline, rental history, cancellation, receipt download
-- **Reviews:** rate a completed rental (vehicle and driver, with a comment); ratings update automatically
+- My bookings with status timeline, booking details, cancellation, receipt download
+- Notifications for every status change, reviews for completed trips, profile and password change
 
-**Admin** (`/admin-login`)
-- Dashboard: bookings, revenue collected, vehicles available today, pending reviews, rentals in progress, top vehicles
-- Vehicle management: add, edit, delete, mark as under maintenance
-- Driver management: add, block or unblock, see trip counts and ratings
-- Booking management: approve or reject requests (with a reason sent to the customer), start rentals, complete rentals, cancel bookings, filter by status
-- Analytics: 6-month trend, top vehicles by revenue, bookings by vehicle type, average rating, recent reviews, auto-generated insights
+**Admin**
+- Dashboard: bookings, revenue, vehicles free today, pending approvals, rentals in progress, top vehicles
+- Vehicles: add, edit, delete, take out of service
+- Drivers: approve or reject self-registered drivers, add drivers (with a login), block or unblock
+- Users: customer list with booking activity, block or unblock (a blocked customer is logged out and can't log in)
+- Bookings: tabs (needs action, approved, on rent, completed and so on), search, approve, reject with a reason, start, complete, cancel
+- Analytics (trends, insights, reviews), Reports (any date range, by vehicle / driver / payment method, CSV download)
+- Notifications for new booking requests, driver registrations, and rentals starting and ending
+
+**Driver**
+- Register, then log in once an admin approves the account
+- Dashboard with today's trips and "new trip assigned" notifications
+- Assigned trips with start and end trip buttons (only for their own trips, and only from the pick-up date)
+- Trip details with customer contact and payment to collect, earnings by month, profile and password
 
 **Engineering highlights**
-- **Booking state machine:** PENDING → APPROVED → ONGOING → COMPLETED (or REJECTED / CANCELLED); invalid jumps are refused by the server
-- **Double-booking prevention:** date-overlap check plus a pessimistic row lock on the vehicle inside a transaction, so two simultaneous requests cannot book the same dates
+- **Role-based access:** separate logins for customers, admins and drivers; the server checks the role on every `/admin/**`, `/driver/**` and customer request
+- **Booking state machine:** invalid jumps (for example completing a booking that was never approved) are refused by the server
+- **Double-booking prevention:** date-overlap check plus a pessimistic row lock on the vehicle inside a transaction
 - **Server-side pricing:** totals are never trusted from the client
-- **Scheduled job (hourly):** starts approved rentals on the pick-up day, completes ongoing rentals after the return day, expires pending requests nobody reviewed in time, and sends pickup reminders the day before
-- **Notifications:** stored in the database for every status change
-- **Security:** BCrypt password hashing, token-based sessions, customers can only see and change their own bookings, role-based access to all `/admin/**` APIs
-- **Validation and errors:** Bean Validation on requests, global exception handler with readable messages
-- **Tests:** JUnit 5 + Spring Boot tests covering the booking lifecycle, overlaps, refunds, reviews and the scheduler
+- **Scheduled job (hourly):** starts, completes and expires bookings, and sends pickup reminders
+- **Security:** BCrypt password hashing, token sessions, blocked accounts lose their session, customers and drivers only see their own data
+- **Tests:** JUnit 5 + Spring Boot tests for the booking lifecycle, overlaps, refunds, reviews, the scheduler, role logins, account blocking and driver permissions
 
 ## Tech Stack
 
@@ -68,7 +111,7 @@ React (Vite :5173)  ──/api/*──►  Vite proxy  ──►  Spring Boot (:
                                                   H2 / MySQL database
 ```
 
-**Entities:** `User` (customer/admin) · `Vehicle` · `Driver` · `Booking` (→ Vehicle, Driver, User) · `Payment` (1–1 with Booking) · `Review` (1–1 with a completed Booking) · `Notification` (→ User)
+**Entities:** `User` (customer / admin / driver login) · `Vehicle` · `Driver` (→ its User login) · `Booking` (→ Vehicle, Driver, User) · `Payment` (1–1 with Booking) · `Review` (1–1 with a completed Booking) · `Notification` (→ User)
 
 ## Running the Project
 
@@ -84,11 +127,13 @@ npm run dev
 To run the backend and frontend separately, start the backend with `cd backend` followed by `mvnw spring-boot:run` on Windows or `./mvnw spring-boot:run` on macOS/Linux, then run `npm run dev:frontend` from the project root.
 
 ### Demo accounts
-| Role | Login | Where |
-|------|-------|-------|
-| Admin | `admin@smartride.com` / `admin1234` | `/admin-login` |
-| Customer (has pending, approved and completed bookings, plus a rental waiting for a review) | `demo@smartride.com` / `demo1234` | `/login` |
-| Other sample customers | e.g. `rahul@example.com` / `password123` | `/login` |
+| Role | Login page | Email | Password |
+|------|-----------|-------|----------|
+| Admin | `/admin/login` | `admin@smartride.com` | `admin1234` |
+| Customer (has bookings in every state, plus a trip to review) | `/login` | `demo@smartride.com` | `demo1234` |
+| Other customers | `/login` | `rahul@example.com`, `ananya@example.com`, ... | `password123` |
+| Drivers | `/driver/login` | `raj@smartride.com`, `priya@smartride.com`, `arjun@smartride.com`, `neha@smartride.com`, `imran@smartride.com` | `driver123` |
+| Driver waiting for approval | (approve in `/admin/drivers`) | `suresh@smartride.com` | `driver123` |
 
 ### Run the tests
 ```bash
@@ -112,6 +157,8 @@ The H2 database console is at http://localhost:8080/h2-console (JDBC URL `jdbc:h
 | POST | `/auth/register` | Register a customer |
 | POST | `/auth/login/user` | Customer login → token |
 | POST | `/auth/login/admin` | Admin login → token |
+| POST | `/auth/register/driver` | Driver registration (waits for admin approval) |
+| POST | `/auth/login/driver` | Driver login → token |
 | GET | `/vehicles` | List vehicles |
 | GET | `/vehicles/{id}` | Vehicle details |
 | GET | `/vehicles/{id}/availability?from=&to=` | Vehicle and driver availability for these dates |
@@ -123,6 +170,9 @@ The H2 database console is at http://localhost:8080/h2-console (JDBC URL `jdbc:h
 | GET | `/me/dashboard` | Customer dashboard stats 👤 |
 | GET | `/notifications` | Your notifications 👤 |
 | PUT | `/notifications/{id}/read`, `/notifications/read-all` | Mark notifications read 👤 |
+| GET/PUT | `/me/profile` | View / update name and phone 👤 |
+| PUT | `/me/password` | Change password 👤 |
+| GET | `/me/reviews` | Your reviews 👤 |
 | POST | `/reviews` | Review a completed rental 👤 |
 | GET | `/admin/dashboard` | Dashboard stats 🔒 |
 | GET | `/admin/analytics` | Analytics and insights 🔒 |
@@ -133,9 +183,18 @@ The H2 database console is at http://localhost:8080/h2-console (JDBC URL `jdbc:h
 | PUT/DELETE | `/admin/vehicles/{id}` | Edit / delete a vehicle 🔒 |
 | PATCH | `/admin/vehicles/{id}/status` | Set AVAILABLE / MAINTENANCE 🔒 |
 | GET/POST | `/admin/drivers` | List / add drivers 🔒 |
+| PUT | `/admin/drivers/{id}/approve`, `/reject` | Approve / reject a driver registration 🔒 |
 | PUT | `/admin/drivers/{id}/toggle` | Block / unblock a driver 🔒 |
+| GET | `/admin/users` | Customers with booking activity 🔒 |
+| PUT | `/admin/users/{id}/toggle` | Block / unblock a customer 🔒 |
+| GET | `/admin/notifications` | Admin notifications 🔒 |
+| GET | `/driver/me` | Driver stats and today's trips 🚗 |
+| GET | `/driver/bookings`, `/driver/bookings/{id}` | Assigned trips / one trip 🚗 |
+| PUT | `/driver/bookings/{id}/start`, `/complete` | Start / end a trip 🚗 |
+| PUT | `/driver/profile`, `/driver/password` | Update profile / change password 🚗 |
+| GET | `/driver/notifications` | Driver notifications 🚗 |
 
-👤 = requires a logged-in customer (`Authorization: Bearer <token>`) · 🔒 = requires an admin token
+👤 = customer login · 🔒 = admin login · 🚗 = driver login (all send `Authorization: Bearer <token>`)
 
 ## Booking Rules
 - Customers must be logged in to book

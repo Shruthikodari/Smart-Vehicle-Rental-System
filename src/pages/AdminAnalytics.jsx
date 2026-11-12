@@ -1,19 +1,11 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import API, { errorMessage } from "../services/api";
-import "../styles/admin.css";
+import AdminLayout from "../components/AdminLayout";
 
 const AdminAnalytics = () => {
-  const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [error, setError] = useState("");
-
-  const handleLogout = () => {
-    localStorage.removeItem("adminToken");
-    localStorage.removeItem("adminUser");
-    navigate("/admin-login", { replace: true });
-  };
 
   useEffect(() => {
     API.get("/admin/analytics")
@@ -22,8 +14,8 @@ const AdminAnalytics = () => {
     API.get("/admin/reviews").then(res => setReviews(res.data)).catch(() => {});
   }, []);
 
-  if (error) return <div className="admin-container"><p style={{color: '#ff6b6b'}}>{error}</p></div>;
-  if (!data) return <div className="admin-container"><p>Loading analytics...</p></div>;
+  if (error) return <AdminLayout title="Reports"><div className="form-error">{error}</div></AdminLayout>;
+  if (!data) return <AdminLayout title="Reports"><p>Loading analytics...</p></AdminLayout>;
 
   const maxMonthBookings = Math.max(1, ...data.monthly.map(m => m.bookings));
   const maxVehicleRevenue = Math.max(1, ...data.topVehicles.map(v => v.revenue));
@@ -31,58 +23,41 @@ const AdminAnalytics = () => {
   const typeTotal = typeEntries.reduce((sum, [, n]) => sum + n, 0) || 1;
 
   return (
-    <div className="admin-container">
-      {/* Header */}
-      <div className="admin-header">
-        <h1>Analytics & Reports</h1>
-        <div className="admin-nav">
-          <button onClick={() => navigate("/admin")}>📊 Dashboard</button>
-          <button onClick={() => navigate("/admin/vehicles")}>🚗 Vehicles</button>
-          <button onClick={() => navigate("/admin/drivers")}>👥 Drivers</button>
-          <button onClick={() => navigate("/admin/bookings")}>📅 Bookings</button>
-          <button className="active">📈 Analytics</button>
-          <button className="logout-btn" onClick={handleLogout}>🚪 Logout</button>
-        </div>
-      </div>
+    <AdminLayout title="Reports" subtitle="Revenue, demand and customer feedback, based on all bookings.">
 
       {/* KPIs */}
       <div className="stats-grid">
         <div className="stat-card">
-          <div className="stat-icon">📅</div>
           <div className="stat-content">
-            <p className="stat-label">Total Bookings</p>
+            <p className="stat-label">Total bookings</p>
             <h2 className="stat-value">{data.totalBookings}</h2>
           </div>
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon">💰</div>
           <div className="stat-content">
-            <p className="stat-label">Revenue Collected</p>
+            <p className="stat-label">Revenue collected</p>
             <h2 className="stat-value">₹{(data.totalRevenue / 100000).toFixed(2)}L</h2>
           </div>
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon">📊</div>
           <div className="stat-content">
-            <p className="stat-label">Avg Booking Value</p>
+            <p className="stat-label">Average booking value</p>
             <h2 className="stat-value">₹{Math.round(data.averageBookingValue).toLocaleString("en-IN")}</h2>
           </div>
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon">✅</div>
           <div className="stat-content">
-            <p className="stat-label">Completion Rate</p>
+            <p className="stat-label">Completion rate</p>
             <h2 className="stat-value">{data.completionRate}%</h2>
           </div>
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon">⭐</div>
           <div className="stat-content">
-            <p className="stat-label">Avg Customer Rating</p>
+            <p className="stat-label">Average rating</p>
             <h2 className="stat-value">{data.averageRating.toFixed(1)} ({data.totalReviews})</h2>
           </div>
         </div>
@@ -90,7 +65,7 @@ const AdminAnalytics = () => {
 
       {/* Monthly Trends */}
       <section className="admin-section">
-        <h2>Monthly Trends (last 6 months)</h2>
+        <h2>Last 6 months</h2>
         <div className="chart-container">
           <table className="admin-table">
             <thead>
@@ -121,14 +96,14 @@ const AdminAnalytics = () => {
 
       {/* Top Vehicles by Revenue */}
       <section className="admin-section">
-        <h2>Top Vehicles by Revenue</h2>
+        <h2>Top vehicles by revenue</h2>
         <div className="top-vehicles">
           {data.topVehicles.map((vehicle, idx) => (
             <div key={vehicle.name} className="vehicle-stat">
               <div className="rank">#{idx + 1}</div>
               <div className="vehicle-details">
                 <h4>{vehicle.name}</h4>
-                <p>Bookings: {vehicle.bookings} | Rating: ⭐ {vehicle.rating}</p>
+                <p>Bookings: {vehicle.bookings} | Rating {vehicle.rating}</p>
               </div>
               <div className="revenue-bar">
                 <div className="bar-fill" style={{width: `${(vehicle.revenue / maxVehicleRevenue) * 100}%`}}></div>
@@ -141,7 +116,7 @@ const AdminAnalytics = () => {
 
       {/* Bookings by vehicle type */}
       <section className="admin-section">
-        <h2>Bookings by Vehicle Type</h2>
+        <h2>Bookings by vehicle type</h2>
         <div className="vehicles-list">
           {typeEntries.map(([type, n]) => (
             <div key={type} className="vehicle-item">
@@ -155,17 +130,17 @@ const AdminAnalytics = () => {
             </div>
           ))}
         </div>
-        <p style={{color: '#888'}}>{data.withDriverPercent}% of customers choose a driver.</p>
+        <p style={{color: 'var(--muted)'}}>{data.withDriverPercent}% of customers choose a driver.</p>
       </section>
 
       {/* Recent reviews */}
       <section className="admin-section">
-        <h2>Recent Customer Reviews</h2>
-        {reviews.length === 0 ? <p style={{color: '#888'}}>No reviews yet</p> : reviews.slice(0, 8).map(r => (
+        <h2>Recent customer reviews</h2>
+        {reviews.length === 0 ? <p style={{color: 'var(--muted)'}}>No reviews yet</p> : reviews.slice(0, 8).map(r => (
           <div key={r.id} className="review-list-item">
             <strong>{r.customerName}</strong> on <strong>{r.vehicleName}</strong>{" "}
             <span className="stars-gold">{"★".repeat(r.vehicleRating)}{"☆".repeat(5 - r.vehicleRating)}</span>
-            {r.driverName && <span style={{color: '#888'}}> · Driver {r.driverName}: {r.driverRating}★</span>}
+            {r.driverName && <span style={{color: 'var(--muted)'}}> · Driver {r.driverName}: {r.driverRating}★</span>}
             {r.comment && <p>"{r.comment}"</p>}
           </div>
         ))}
@@ -173,7 +148,7 @@ const AdminAnalytics = () => {
 
       {/* Key Insights */}
       <section className="admin-section">
-        <h2>Key Insights</h2>
+        <h2>Highlights</h2>
         <div className="insights-grid">
           {data.insights.map(insight => (
             <div key={insight.title} className="insight-card">
@@ -183,7 +158,7 @@ const AdminAnalytics = () => {
           ))}
         </div>
       </section>
-    </div>
+    </AdminLayout>
   );
 };
 
