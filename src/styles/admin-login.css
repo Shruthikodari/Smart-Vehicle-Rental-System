@@ -1,298 +1,108 @@
-/* Admin Login */
 .admin-login-container {
-  width: 100%;
   min-height: 100vh;
-  background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
-  display: flex;
-  flex-direction: column;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-}
-
-.admin-login-nav {
-  padding: 20px 40px;
-  border-bottom: 1px solid #333;
-}
-
-.back-btn {
-  padding: 10px 16px;
-  background: transparent;
-  border: 1px solid #333;
-  border-radius: 6px;
-  color: #999;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.back-btn:hover {
-  color: #fff;
-  border-color: #999;
-}
-
-/* Login Card Container */
-.admin-login-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 40px 20px;
-  flex: 1;
+  background: var(--bg);
 }
 
 .login-card {
-  background: #111;
-  border: 1px solid #333;
-  border-radius: 16px;
-  padding: 48px;
   width: 100%;
-  max-width: 500px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  max-width: 400px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 28px;
 }
 
 .login-header {
-  text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 20px;
 }
 
-.login-icon {
-  font-size: 56px;
-  display: block;
-  margin-bottom: 16px;
+.login-header .site-logo {
+  margin-bottom: 18px;
+  cursor: default;
 }
 
 .login-header h1 {
-  font-size: 28px;
-  font-weight: 700;
-  color: #fff;
-  margin: 0 0 8px 0;
+  font-size: 22px;
+  margin-bottom: 4px;
 }
 
 .login-header p {
-  font-size: 14px;
-  color: #999;
+  color: var(--muted);
   margin: 0;
-}
-
-/* Login Form */
-.login-form {
-  margin-bottom: 32px;
-}
-
-.form-group {
-  margin-bottom: 20px;
-}
-
-.form-group label {
-  display: block;
-  font-size: 13px;
-  font-weight: 700;
-  color: #ccc;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 8px;
-}
-
-.form-group input {
-  width: 100%;
-  padding: 12px 16px;
-  background: #0d0d0d;
-  border: 1px solid #333;
-  border-radius: 8px;
-  color: #fff;
   font-size: 14px;
-  transition: all 0.3s ease;
-  box-sizing: border-box;
 }
 
-.form-group input:focus {
-  outline: none;
-  border-color: #ff5757;
-  box-shadow: 0 0 0 3px rgba(255, 87, 87, 0.1);
+.login-form .form-group {
+  margin-bottom: 14px;
 }
 
-.form-group input:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.form-group input::placeholder {
-  color: #666;
-}
-
-/* Error Box */
-.error-box {
-  background: linear-gradient(180deg, rgba(255, 87, 87, 0.15), rgba(200, 0, 0, 0.08));
-  border: 2px solid rgba(255, 87, 87, 0.5);
-  border-radius: 8px;
-  padding: 14px 16px;
-  color: #ff6666;
-  font-size: 14px;
-  margin-bottom: 20px;
-  font-weight: 500;
-  line-height: 1.5;
-  animation: slideDown 0.3s ease-out;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.error-box::before {
-  content: "⚠️";
-  font-size: 16px;
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Login Button */
 .login-btn {
   width: 100%;
-  padding: 14px 24px;
-  background: linear-gradient(135deg, #ff5757 0%, #ff2e2e 100%);
-  border: none;
-  border-radius: 8px;
+  padding: 11px;
+  margin-top: 4px;
+  background: var(--brand);
   color: #fff;
-  font-size: 16px;
-  font-weight: 700;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 8px 24px rgba(255, 87, 87, 0.3);
 }
 
 .login-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 32px rgba(255, 87, 87, 0.4);
-}
-
-.login-btn:active:not(:disabled) {
-  transform: translateY(0);
+  background: var(--brand-dark);
 }
 
 .login-btn:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
+  opacity: 0.6;
 }
 
-/* Demo Box */
-.demo-box {
-  background: rgba(0, 191, 255, 0.1);
-  border: 1px solid rgba(0, 191, 255, 0.3);
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 20px;
-}
-
-.demo-box h4 {
-  color: #00bfff;
-  font-size: 13px;
-  font-weight: 700;
-  margin: 0 0 12px 0;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.demo-box p {
-  font-size: 13px;
-  color: #ccc;
-  margin: 8px 0;
-  font-family: "Courier New", monospace;
-}
-
-.demo-box strong {
-  color: #00bfff;
-  font-weight: 700;
-}
-
-.demo-note {
-  background: rgba(255, 152, 0, 0.1);
-  border-left: 3px solid #ff9800;
-  padding: 8px 12px;
-  margin-top: 12px;
-  color: #ff9800;
-  font-style: italic;
-}
-
-/* Security Info */
-.security-info {
-  background: rgba(0, 221, 0, 0.1);
-  border: 1px solid rgba(0, 221, 0, 0.3);
-  border-radius: 12px;
-  padding: 16px;
-}
-
-.security-info h4 {
-  color: #00dd00;
-  font-size: 13px;
-  font-weight: 700;
-  margin: 0 0 12px 0;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.security-info ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.security-info li {
-  font-size: 13px;
-  color: #ccc;
-  padding: 6px 0;
-  line-height: 1.5;
-}
-
-/* Footer */
 .admin-login-footer {
+  margin-top: 18px;
+  font-size: 13px;
+  color: var(--muted);
   text-align: center;
-  padding: 20px;
-  border-top: 1px solid #333;
-  color: #666;
-  font-size: 12px;
-  margin-top: auto;
 }
 
-.admin-login-footer p {
-  margin: 4px 0;
+.admin-login-footer button {
+  background: none;
+  border: none;
+  color: var(--brand);
+  cursor: pointer;
+  font-size: 13px;
 }
 
-@media (max-width: 768px) {
-  .admin-login-nav {
-    padding: 16px 20px;
-  }
+.demo-hint {
+  margin-top: 18px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font-size: 13px;
+  color: var(--text-2);
+}
 
-  .admin-login-container {
-    padding: 20px;
-  }
+.auth-switch {
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
 
-  .login-card {
-    padding: 32px 20px;
-    border-radius: 12px;
-  }
+.login-card .note {
+  font-size: 13px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  margin: 0 0 14px;
+}
 
-  .login-header h1 {
-    font-size: 24px;
-  }
-
-  .login-icon {
-    font-size: 48px;
-  }
-
-  .demo-box,
-  .security-info {
-    padding: 12px;
-  }
-
-  .demo-box h4,
-  .security-info h4 {
-    font-size: 12px;
-  }
+.login-card .note-ok {
+  background: var(--green-soft);
+  color: var(--green);
 }

@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import SiteHeader from "../components/SiteHeader";
 import "../styles/auth.css";
 
 const Register = () => {
@@ -13,7 +14,9 @@ const Register = () => {
   const { register } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const vehicleId = location.state?.vehicleId;
+  // Where to go after signing up (e.g. back to the vehicle the user wanted to book)
+  const from = location.state?.from || "/history";
+  const fromState = location.state?.fromState;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -32,8 +35,8 @@ const Register = () => {
       setError("Please enter a valid email");
       return;
     }
-    if (!phone.trim()) {
-      setError("Phone number is required");
+    if (!/^\d{10}$/.test(phone.trim())) {
+      setError("Please enter a 10-digit phone number");
       return;
     }
     if (!password.trim()) {
@@ -51,12 +54,11 @@ const Register = () => {
       const result = await register({ fullName, email, phone, password });
 
       if (result.success) {
-        // After registration, go to Home (login page removed)
-        navigate("/home", { replace: true });
+        // Registration also logs the user in, so continue where they left off
+        navigate(from, { replace: true, state: fromState });
       } else {
         setError(result.message || "Registration failed. Please try again.");
       }
-    }
     } catch (err) {
       console.error("Register error:", err);
       setError("An error occurred. Please try again.");
@@ -66,16 +68,18 @@ const Register = () => {
   };
 
   return (
+    <div>
+    <SiteHeader />
     <div className="auth-container">
       <div className="auth-card">
-        <h1>Create Account</h1>
-        <p className="auth-subtext">Join SmartRide and start renting today</p>
+        <h1>Create your account</h1>
+        <p className="auth-subtext">You need an account to book. It takes less than a minute.</p>
 
         {error && <div className="error-box">{error}</div>}
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>Full Name</label>
+            <label>Full name</label>
             <input
               type="text"
               placeholder="Your full name"
@@ -99,12 +103,13 @@ const Register = () => {
           </div>
 
           <div className="form-group">
-            <label>Phone</label>
+            <label>Mobile number</label>
             <input
               type="tel"
-              placeholder="+91 98765 43210"
+              placeholder="10-digit mobile number"
+              maxLength="10"
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
               disabled={loading}
               required
             />
@@ -123,12 +128,16 @@ const Register = () => {
           </div>
 
           <button type="submit" className="auth-btn" disabled={loading}>
-            {loading ? "Creating Account..." : "Create Account →"}
+            {loading ? "Creating account..." : "Create account"}
           </button>
         </form>
 
-        <p className="auth-footer">Already have an account? Visit the home page.</p>
+        <p className="auth-footer">
+          Already have an account?{" "}
+          <Link to="/login" state={location.state}>Log in</Link>
+        </p>
       </div>
+    </div>
     </div>
   );
 };
